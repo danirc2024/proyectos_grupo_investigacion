@@ -1,0 +1,23 @@
+1.
+Montar pequeños recipientes con diferentes tipos de agua (agua destilada, agua con tierra, agua con sal). Con sensores sumergibles conectados a un microcontrolador, envían los datos por HTTP/REST o MQTT a un dashboard interactivo (en Grafana o Streamlit). La pantalla debe mostrar gráficos dinámicos y alertas visuales (Luces LED rojas/verdes) según la contaminación.Asi, los jovenes pueden tirar una pizca de sal o tierra al agua y ver en el acto cómo los gráficos en el dashboard cambian y predicen el estado del agua.
+Microcontrolador --> ESP32 (Cualquier versión, ej. ESP32-WROOM-32): Es el rey para esto. Es baratísimo, tiene Wi-Fi y Bluetooth integrados, y es muchísimo más potente que un Arduino tradicional. Les permitirá enviar los datos a internet o a una base de datos local sin necesidad de módulos extra.
+
+sensores(mejor confirmar con el profe)--> Sensor de Turbidez (Ej. TS-300B): Mide qué tan "limpia" o translúcida está el agua mediante luz infrarroja. Si le tiran un poco de tierra al agua, el valor cambiará drásticamente de inmediato.
+
+Sensor de Conductividad Eléctrica / TDS (Total de Sólidos Disueltos): Mide la cantidad de sales o minerales disueltos. Es perfecto porque si le echan una pizca de sal de mesa al agua (que a simple vista se sigue viendo transparente), el sensor detectará el pico de conductividad al instante
+
+Sensor de pH (Ej. PH-4502C): Mide la acidez o alcalinidad. Pueden tener un vaso con agua con un chorrito de limón o vinagre para mostrar cómo cambia el pH.
+
+2.
+Montar una cámara web apuntando al público. Usando una laptop o una Raspberry Pi corriendo un modelo ligero de visión computacional (como Face Mesh de MediaPipe en Python), el sistema detecta los rostros de la gente que pasa y clasifica su emoción actual (Feliz, Sorprendido, Enojado, Aburrido) en un gráfico de barras gigante en pantalla.
+
+OpenCV: Para capturar el video de la cámara en tiempo real.
+
+MediaPipe (de Google) o DeepFace: Son librerías de Python gratuitas y ultra rápidas. MediaPipe puede detectar los "puntos de control" del rostro (ojos, cejas, boca) en milisegundos, mientras que DeepFace ya viene con un modelo entrenado para clasificar emociones (Felicidad, Tristeza, Sorpresa, Ira, Asco, Miedo, Neutral).
+
+Streamlit o Pygame: Para montar la interfaz gráfica de forma veloz. Streamlit les permite crear un sitio web local con gráficos estadísticos en menos de 50 líneas de código.
+
+3. 
+La idea de este proyecto es desarrollar un sistema llamado SmartStand BLE, enfocado en la analítica de interacción y aforo para ferias universitarias. El objetivo es resolver la falta de métricas objetivas al evaluar el éxito de un stand sin invadir la privacidad con cámaras costosas. Para lograrlo, el sistema utiliza un microcontrolador ESP32 de bajo costo instalado en la mesa, el cual funciona como un radar pasivo. Este dispositivo escucha las señales Bluetooth Low Energy (BLE) que emiten constantemente los teléfonos móviles y relojes inteligentes de los visitantes que transitan por el lugar.  
+
+Para medir el interés real y no solo contar a quienes van de paso, el sistema filtra estas señales utilizando el indicador RSSI, determinando así si una persona está simplemente caminando por el pasillo o si se detuvo frente a la mesa a hacer preguntas. Toda la información capturada es procesada de forma segura; las direcciones MAC se anonimizan o hashean en el mismo dispositivo para proteger la identidad de los estudiantes, y luego los datos se transmiten a un servidor central utilizando el protocolo ligero MQTT para no saturar el ancho de banda. Finalmente, el verdadero valor estratégico radica en la aplicación de inteligencia de negocios, procesando esta base histórica con Python. Esto permite generar mapas de calor de la feria, identificar los horarios de mayor congestión y calcular objetivamente el tiempo de retención de cada stand, transformando el evento en un entorno inteligente e impulsado por datos para optimizar futuras instancias.
