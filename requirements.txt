@@ -1,0 +1,20 @@
+# ── proyecto_emociones_vision ────────────────────────────────
+opencv-python==4.10.0.84          # Captura de cámara y procesamiento de frames
+mediapipe==0.10.14                # Face Mesh: detección de 468 puntos faciales
+deepface==0.0.93                  # Clasificación de emociones (usa modelos pre-entrenados)
+tf-keras                          # Backend requerido por DeepFace (compatible TF2)
+streamlit==1.35.0                 # Dashboard web interactivo
+streamlit-webrtc==0.47.6          # Acceso a cámara desde Streamlit en el navegador
+av==12.0.5                        # Requerido por streamlit-webrtc para procesar video
+plotly==6.8.0                   # Gráficos de barras animados para emociones
+
+# ── proyecto_calidad_agua ─────────────────────────────────────
+paho-mqtt==2.1.0                  # Cliente MQTT para recibir datos del ESP32
+pandas==2.2.2                     # Manejo de series de tiempo de sensores
+numpy==1.26.4                     # Operaciones numéricas sobre lecturas de sensores
+# (Streamlit y Plotly ya están declarados arriba)
+
+# ── proyecto_smartstand_ble ───────────────────────────────────
+# (paho-mqtt, pandas, numpy, streamlit y plotly ya están declarados arriba)
+seaborn==0.13.2                   # Mapas de calor de aforo en la feria
+matplotlib==3.9.0                 # Soporte adicional para visualizaciones
