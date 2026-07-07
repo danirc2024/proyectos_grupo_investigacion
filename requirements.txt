@@ -9,11 +9,11 @@ av==12.0.5                        # Requerido por streamlit-webrtc para procesar
 plotly==6.8.0                   # Gráficos de barras animados para emociones
 
 # ── proyecto_calidad_agua ─────────────────────────────────────
-paho-mqtt==2.1.0                  # Cliente MQTT para recibir datos del ESP32
+flask==3.0.3                      # Backend que recibe lecturas del sensor de pH y las guarda en SQLite
+pyserial==3.5                     # Lee los datos del ESP32 por el puerto USB (sin necesidad de WiFi)
+requests==2.32.3                  # Envía las lecturas leídas del serial hacia el backend Flask
 pandas==2.2.2                     # Manejo de series de tiempo de sensores
-numpy==1.26.4                     # Operaciones numéricas sobre lecturas de sensores
-# (Streamlit y Plotly ya están declarados arriba)
-
+# (Streamlit ya está declarado arriba)
 # ── proyecto_smartstand_ble ───────────────────────────────────
 # (paho-mqtt, pandas, numpy, streamlit y plotly ya están declarados arriba)
 seaborn==0.13.2                   # Mapas de calor de aforo en la feria
