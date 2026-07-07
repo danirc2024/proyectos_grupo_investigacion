@@ -1,68 +1,63 @@
 import time
 from deepface import DeepFace
+import config
 
 class EmotionClassifier:
-    def __init__(self, throttle_seconds=1.0):
-        # Mapeo de emociones de DeepFace (en inglés) a español
+
+    def __init__(self, throttle_seconds: float = config.THROTTLE_SECONDS) -> None:
+
         self.throttle_seconds = throttle_seconds
-        self.cache = {}
-        self.emotion_mapping = {
-            'happy': 'Feliz',
-            'surprise': 'Sorprendido',
-            'angry': 'Enojado',
-            'sad': 'Triste',
-            'fear': 'Miedo',
-            'disgust': 'Asco',
-            'neutral': 'Aburrido'
-        }
+        # cache: { face_id -> {'emotion': str, 'confidence': float, 'last_time': float} }
+        self._cache: dict[int, dict] = {}
+        self._emotion_mapping: dict[str, str] = config.EMOTION_MAPPING
 
-    def classify_face_crop(self, face_crop, face_id):
+    # ------------------------------------------------------------------
+    # API pública
+    # ------------------------------------------------------------------
+
+    def classify_face_crop(
+        self, face_crop, face_id: int
+    ) -> tuple[str, float]:
+
         now = time.time()
-        
-        # 1. Verificar si tenemos una clasificación reciente en caché
-        if face_id in self.cache:
-            cached_data = self.cache[face_id]
-            if now - cached_data['last_time'] < self.throttle_seconds:
-                return cached_data['emotion'], cached_data['confidence']
-                
-        # 2. Si no hay caché o ya venció el tiempo de throttling, clasificar con DeepFace
-        # Si el face_crop está vacío o es inválido, retornar valores por defecto
-        if face_crop is None or face_crop.size == 0 or face_crop.shape[0] < 10 or face_crop.shape[1] < 10:
-            return 'Aburrido', 1.0
 
+        # 1. Devolver caché si el throttle aún está vigente
+        cached = self._cache.get(face_id)
+        if cached and (now - cached["last_time"]) < self.throttle_seconds:
+            return cached["emotion"], cached["confidence"]
+
+        # 2. Validar el recorte antes de llamar a DeepFace
+        if face_crop is None or face_crop.size == 0 or face_crop.shape[0] < 10 or face_crop.shape[1] < 10:
+            return "Aburrido", 1.0
+
+        # 3. Clasificar con DeepFace
         try:
-            # DeepFace.analyze con backend 'opencv' detecta y clasifica rostros en un solo paso
-            # enforce_detection=True lanzará una excepción si no hay caras en el frame, lo que capturamos para retornar []
             objs = DeepFace.analyze(
                 img_path=face_crop,
-                actions=['emotion'],
+                actions=["emotion"],
                 enforce_detection=False,
-                detector_backend='opencv',
-                silent=True
+                detector_backend="opencv",
+                silent=True,
             )
-            
-            if objs and len(objs) > 0:
+
+            if objs:
                 result = objs[0]
-                dominant_en = result['dominant_emotion']
-                confidence_pct = result['emotion'][dominant_en] / 100.0 
+                dominant_en: str = result["dominant_emotion"]
+                confidence: float = result["emotion"][dominant_en] / 100.0
+                dominant_es: str = self._emotion_mapping.get(dominant_en, "Aburrido")
 
-                # Traducir emoción
-                dominant_es = self.emotion_mapping.get(dominant_en, 'Aburrido')
-
-                self.cache[face_id] = {
-                    'emotion': dominant_es,
-                    'confidence': confidence_pct,
-                    'last_time': now
+                self._cache[face_id] = {
+                    "emotion": dominant_es,
+                    "confidence": confidence,
+                    "last_time": now,
                 }
-                
-                return dominant_es, confidence_pct
+                return dominant_es, confidence
 
-        except Exception as e:
-            # En caso de error, imprimir el error de forma segura en Windows (evitando fallos de unicode/emoji)
-            err_msg = str(e).encode('ascii', 'ignore').decode('ascii')
-            print(f"[EmotionClassifier ERROR] Error clasificando ID {face_id}: {err_msg}")
-            if face_id in self.cache:
-                return self.cache[face_id]['emotion'], self.cache[face_id]['confidence']
-                
-        # Si falla y no hay caché anterior, retornar neutral
-        return 'Aburrido', 1.0
+        except Exception as exc:
+            err_msg = str(exc).encode("ascii", "ignore").decode("ascii")
+            print(f"[EmotionClassifier ERROR] ID {face_id}: {err_msg}")
+            # Reutilizar caché anterior si existe
+            if cached:
+                return cached["emotion"], cached["confidence"]
+
+        return "Aburrido", 1.0
