@@ -2,10 +2,12 @@ import time
 from deepface import DeepFace
 import config
 
+
+#Clasificación de emociones sobre recortes de rostro con cache por persona
 class EmotionClassifier:
 
+    #Configura el tiempo mínimo entre análisis repetidos del mismo rostro
     def __init__(self, throttle_seconds: float = config.THROTTLE_SECONDS) -> None:
-
         self.throttle_seconds = throttle_seconds
         # cache: { face_id -> {'emotion': str, 'confidence': float, 'last_time': float} }
         self._cache: dict[int, dict] = {}
@@ -15,10 +17,10 @@ class EmotionClassifier:
     # API pública
     # ------------------------------------------------------------------
 
+    #Devuelve la emoción dominante del recorte recibido.
     def classify_face_crop(
         self, face_crop, face_id: int
     ) -> tuple[str, float]:
-
         now = time.time()
 
         # 1. Devolver caché si el throttle aún está vigente
@@ -61,3 +63,7 @@ class EmotionClassifier:
                 return cached["emotion"], cached["confidence"]
 
         return "Aburrido", 1.0
+
+    #Elimina del cache la información asociada a un rostro que ya no está
+    def clear_face(self, face_id: int) -> None:
+        self._cache.pop(face_id, None)

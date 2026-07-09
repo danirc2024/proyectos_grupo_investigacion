@@ -6,7 +6,9 @@ import streamlit as st
 import config
 
 
+#Componentes visuales reutilizables de la interfaz de Streamlit
 def render_chart(counts: dict[str, int], chart_placeholder) -> None:
+    """Pinta la gráfica principal con el conteo acumulado de emociones."""
 
     df = pd.DataFrame([
         {"Emoción": emocion, "Cantidad": cantidad}
@@ -51,12 +53,12 @@ def render_chart(counts: dict[str, int], chart_placeholder) -> None:
 
     chart_placeholder.plotly_chart(
         fig,
-        use_container_width=True,
+        width="stretch",
         key=f"chart_{time.time()}",
     )
 
-
-def render_metric_card(counts: dict[str, int], metric_placeholder) -> None:
+#Muestra la tarjeta con el total de personas registradas
+def render_metric_card(counts: dict[str, int], metric_placeholder) -> None:    
 
     total = sum(counts.values())
     metric_placeholder.markdown(
@@ -69,7 +71,7 @@ def render_metric_card(counts: dict[str, int], metric_placeholder) -> None:
         unsafe_allow_html=True,
     )
 
-
+#Muestra los eventos más recientes del procesamiento de video
 def render_event_log(event_log: list[str], log_placeholder) -> None:
 
     recent = event_log[-5:]

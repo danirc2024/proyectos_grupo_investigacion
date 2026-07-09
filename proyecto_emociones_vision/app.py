@@ -1,7 +1,25 @@
 import os
 import sys
+import logging
+import warnings
 
 import streamlit as st
+
+# Reducir ruido de logs de librerías externas sin ocultar errores reales.
+os.environ.setdefault("GLOG_minloglevel", "2")
+os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
+os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
+os.environ.setdefault("ABSL_LOGGING_LEVEL", "3")
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+
+logging.getLogger("streamlit").setLevel(logging.ERROR)
+logging.getLogger("streamlit.runtime").setLevel(logging.ERROR)
+logging.getLogger("absl").setLevel(logging.ERROR)
+logging.getLogger("tensorflow").setLevel(logging.ERROR)
+logging.getLogger("mediapipe").setLevel(logging.ERROR)
+logging.getLogger("google").setLevel(logging.ERROR)
+logging.getLogger("urllib3").setLevel(logging.ERROR)
 
 # Asegurar que los módulos locales sean importables
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -15,9 +33,8 @@ from emotion_classifier import EmotionClassifier
 from video_processor import procesar_video
 from ui_components import render_chart, render_metric_card, render_event_log
 
-# ---------------------------------------------------------------------------
+
 # Configuración de página y estilos
-# ---------------------------------------------------------------------------
 st.set_page_config(
     page_title="Detector de Emociones del Público",
     layout="wide",
@@ -25,9 +42,7 @@ st.set_page_config(
 )
 st.markdown(CSS, unsafe_allow_html=True)
 
-# ---------------------------------------------------------------------------
 # Verificar existencia del modelo de MediaPipe
-# ---------------------------------------------------------------------------
 MODEL_PATH = os.path.join(BASE_DIR, config.MODEL_FILENAME)
 if not os.path.exists(MODEL_PATH):
     st.error(f"No se encontró el modelo de MediaPipe en: {MODEL_PATH}")
@@ -38,9 +53,7 @@ if not os.path.exists(MODEL_PATH):
     )
     st.stop()
 
-# ---------------------------------------------------------------------------
 # Inicialización del estado de sesión
-# ---------------------------------------------------------------------------
 if "counts" not in st.session_state:
     st.session_state.counts = dict(config.INITIAL_COUNTS)
 
@@ -59,9 +72,7 @@ if "event_log" not in st.session_state:
 if "running" not in st.session_state:
     st.session_state.running = False
 
-# ---------------------------------------------------------------------------
 # Sidebar — solo controles esenciales
-# ---------------------------------------------------------------------------
 st.sidebar.title("🛠️ Controles")
 st.sidebar.markdown("---")
 
@@ -75,16 +86,16 @@ st.sidebar.markdown("---")
 
 # Botones de control
 if st.session_state.running:
-    if st.sidebar.button("🔴 Detener Cámara", use_container_width=True):
+    if st.sidebar.button("🔴 Detener Cámara", width="stretch"):
         st.session_state.running = False
         st.rerun()
 else:
-    if st.sidebar.button("🟢 Iniciar Cámara", use_container_width=True):
+    if st.sidebar.button("🟢 Iniciar Cámara", width="stretch"):
         st.session_state.running = True
         st.toast("Cargando DeepFace… (La primera vez puede tardar unos segundos)", icon="🤖")
         st.rerun()
 
-if st.sidebar.button("🔄 Reiniciar Estadísticas", use_container_width=True):
+if st.sidebar.button("🔄 Reiniciar Estadísticas", width="stretch"):
     st.session_state.counts = dict(config.INITIAL_COUNTS)
     st.session_state.tracker = CentroidTracker(
         max_disappeared=config.MAX_DISAPPEARED,
@@ -96,9 +107,7 @@ if st.sidebar.button("🔄 Reiniciar Estadísticas", use_container_width=True):
     st.toast("Contadores reiniciados con éxito", icon="🔄")
     st.rerun()
 
-# ---------------------------------------------------------------------------
 # Encabezado principal
-# ---------------------------------------------------------------------------
 st.markdown(
     "<h1>🎭 Detector de Emociones en Tiempo Real</h1>",
     unsafe_allow_html=True,
@@ -109,9 +118,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ---------------------------------------------------------------------------
 # Layout principal: columna de video | columna de estadísticas
-# ---------------------------------------------------------------------------
 col_video, col_stats = st.columns([1.1, 0.9])
 
 with col_video:
@@ -132,9 +139,7 @@ render_chart(st.session_state.counts, chart_placeholder)
 render_metric_card(st.session_state.counts, metric_placeholder)
 render_event_log(st.session_state.event_log, log_placeholder)
 
-# ---------------------------------------------------------------------------
 # Bucle principal de orquestación
-# ---------------------------------------------------------------------------
 if st.session_state.running:
     # running_flag: lista mutable de un elemento para señalizar detención
     running_flag = [True]
@@ -155,7 +160,7 @@ if st.session_state.running:
                 render_event_log(st.session_state.event_log, log_placeholder)
 
             # Mostrar el frame procesado
-            image_placeholder.image(frame_rgb, channels="RGB", use_container_width=True)
+            image_placeholder.image(frame_rgb, channels="RGB", width="stretch")
 
             # Verificar si el usuario pulsó "Detener" (session_state cambia entre reruns)
             if not st.session_state.running:

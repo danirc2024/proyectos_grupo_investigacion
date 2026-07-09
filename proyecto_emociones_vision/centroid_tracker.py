@@ -13,9 +13,7 @@ class CentroidTracker:
         self.max_disappeared = max_disappeared
         self.max_distance = max_distance
 
-    # ------------------------------------------------------------------
     # Registro / eliminación de objetos
-    # ------------------------------------------------------------------
 
     def register(self, centroid: tuple[float, float]) -> int:
         oid = self.next_object_id
@@ -33,9 +31,7 @@ class CentroidTracker:
         if object_id in self.emotions_history:
             del self.emotions_history[object_id]
 
-    # ------------------------------------------------------------------
     # Actualización por frame
-    # ------------------------------------------------------------------
 
     def update(self, input_centroids: list[tuple[float, float]]) -> dict[int, tuple[float, float]]:
 
