@@ -1,11 +1,11 @@
 # ── proyecto_emociones_vision ────────────────────────────────
 opencv-python==4.10.0.84          # Captura de cámara y procesamiento de frames
-mediapipe==0.10.14                # Face Mesh: detección de 468 puntos faciales
+mediapipe==0.10.35                # Face Mesh: detección de 468 puntos faciales
 deepface==0.0.93                  # Clasificación de emociones (usa modelos pre-entrenados)
 tf-keras                          # Backend requerido por DeepFace (compatible TF2)
 streamlit==1.35.0                 # Dashboard web interactivo
 streamlit-webrtc==0.47.6          # Acceso a cámara desde Streamlit en el navegador
-av==12.0.5                        # Requerido por streamlit-webrtc para procesar video
+av==12.3.0                        # Requerido por streamlit-webrtc para procesar video
 plotly==6.8.0                   # Gráficos de barras animados para emociones
 
 # ── proyecto_calidad_agua ─────────────────────────────────────

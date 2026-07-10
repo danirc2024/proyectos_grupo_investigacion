@@ -13,6 +13,9 @@ from centroid_tracker import CentroidTracker
 from emotion_classifier import EmotionClassifier
 
 
+"""Procesamiento principal del video en vivo, detección facial y conteo de emociones."""
+
+#Lee la webcam, detecta rostros y genera frames listos para la interfaz
 def procesar_video(
     tracker: CentroidTracker,
     classifier: EmotionClassifier,
@@ -20,7 +23,7 @@ def procesar_video(
     model_path: str,
     running_flag: list[bool],
 ) -> Generator[tuple[np.ndarray, list[str]], None, None]:
-    
+
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         raise RuntimeError("No se pudo acceder a la cámara web.")
@@ -41,7 +44,7 @@ def procesar_video(
             if not ret:
                 break
 
-            # Espejo horizontal (efecto natural para el usuario)
+            # Espejo horizontal para que la vista de la cámara resulte natural.
             frame = cv2.flip(frame, 1)
             alto, ancho = frame.shape[:2]
             nuevos_eventos: list[str] = []
@@ -55,6 +58,7 @@ def procesar_video(
             current_centroids: list[tuple[float, float]] = []
             frame_faces_raw: list[dict] = []
 
+            # Convertir la detección de MediaPipe en centroides y cajas delimitadoras.
             if resultados.face_landmarks:
                 for rostro_landmarks in resultados.face_landmarks:
                     cx = sum(p.x for p in rostro_landmarks) / len(rostro_landmarks)
@@ -75,11 +79,13 @@ def procesar_video(
                     })
 
 
+            # Actualizar el tracker para saber qué rostros siguen activos y cuáles desaparecieron.
             old_ids = set(tracker.objects.keys())
             tracker.update(current_centroids)
             new_ids = set(tracker.objects.keys())
             removed_ids = old_ids - new_ids
 
+            # Registrar el resultado final cuando una persona sale del encuadre.
             for r_id in removed_ids:
                 if not tracker.counted_emotions.get(r_id, True):
                     history = tracker.emotions_history.get(r_id, [])
@@ -92,8 +98,10 @@ def procesar_video(
                     nuevos_eventos.append(
                         f"[{t_str}] Persona #{r_id} se retiró. Clasificación final: {dominant_final}"
                     )
+                classifier.clear_face(r_id)
 
 
+            # Clasificar cada rostro visible y dibujar su información sobre el frame.
             for face_raw in frame_faces_raw:
                 cx, cy = face_raw["centroid"]
                 xmin, ymin, xmax, ymax = face_raw["bbox"]
